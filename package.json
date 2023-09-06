@@ -1,0 +1,32 @@
+{
+  "name": "green-tokens-figma-plugin",
+  "version": "1.0.0",
+  "description": "Green Tokens Plugin",
+  "main": "src/code.js",
+  "scripts": {
+    "build": "build-figma-plugin --typecheck --minify",
+    "watch": "build-figma-plugin --typecheck --watch"
+  },
+  "author": "Vilhelm Sjölander",
+  "license": "MIT",
+  "devDependencies": {
+    "@create-figma-plugin/build": "^2.6.1",
+    "@create-figma-plugin/tsconfig": "^2.6.1",
+    "@figma/plugin-typings": "^1.76.0",
+    "typescript": ">=4"
+  },
+  "dependencies": {
+    "@create-figma-plugin/ui": "^2.6.1",
+    "@create-figma-plugin/utilities": "^2.6.1",
+    "preact": "^10.17.1"
+  },
+  "figma-plugin": {
+    "editorType": [
+      "figma"
+    ],
+    "id": "",
+    "name": "Green Tokens",
+    "main": "src/main.ts",
+    "ui": "src/ui.tsx"
+  }
+}

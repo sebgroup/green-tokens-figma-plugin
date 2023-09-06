@@ -1,0 +1,1 @@
+export const VALID_COLLECTIONS_NAMES = ['mamma', 'mia']
