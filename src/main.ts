@@ -1,65 +1,130 @@
 import {emit, on, showUI} from '@create-figma-plugin/utilities'
 import {VALID_COLLECTIONS_NAMES} from './constants'
-import {ReportErrorHandler, Token, Tokens, TokensCategory, Variable} from './types'
-import {useContext} from "preact/compat";
-import {PluginContext} from "./ui";
+import {
+    VariablesPreparedHandler,
+    ReportErrorHandler,
+    Token,
+    Tokens,
+    TokensCategory,
+} from './types'
+import {InterimVariable} from "./classes/InterimVariable";
 
-const {getLocalVariableCollections, getVariableCollectionById, getLocalVariables} = figma.variables
+const {getLocalVariableCollections, getLocalVariables} = figma.variables
 
-function flattenTokens(obj: Token | Tokens | TokensCategory, target: Variable[]) {
-    for (const entry in Object.entries(obj)) {
-        if(entry[1].hasOwnProperty('value')) {
+function flattenTokens(obj: Token | Tokens | TokensCategory, target: Token[]) {
+    for (const entry of Object.entries(obj)) {
+        if (entry[1].hasOwnProperty('value')) {
             target.push(entry[1])
         } else {
-            if( typeof entry[1] === 'object') {
+            if (typeof entry[1] === 'object') {
                 flattenTokens(entry[1], target)
             }
         }
     }
 }
 
-function convertTokensToVariables(tokens: Tokens) {
-    const refVariables: Variable[] = []
-    const sysVariables: Variable[] = []
-    flattenTokens(tokens.ref, refVariables)
-    flattenTokens(tokens.sys, sysVariables)
 
-    return {
-        ref: refVariables,
-        sys: sysVariables
-    }
-}
 
 function checkValidCollections() {
-    console.log('checkValidCollections')
-    const context = useContext(PluginContext)
-    console.log(context)
     const localCollections = getLocalVariableCollections()
     localCollections.forEach(collection => {
-        const { name } = collection
+        const {name} = collection
         if (VALID_COLLECTIONS_NAMES.includes(name)) return
-        emit<ReportErrorHandler>('REPORT_ERROR', `Your Figma file must contain two collections named: ${VALID_COLLECTIONS_NAMES.join(', ')}`)
+        emit<ReportErrorHandler>('REPORT_ERROR', `Your Figma file must contain two variable collections named: ${VALID_COLLECTIONS_NAMES.join(', ')} in order for this plugin to work.` as any)
     })
 }
 
 export default () => {
-    console.log('INIT ENNN')
-    //checkValidCollections()
+    console.log('INIT')
 
-    on('IMPORT_TOKENS', async ({json, importMode}) => {
+    let refVariables: InterimVariable[];
+    let sysVariables: InterimVariable[];
+
+    on('IMPORT_TOKENS', async ({json}) => {
             const tokens: Tokens = JSON.parse(json) as { ref: any, sys: any }
 
             if (!tokens.ref) {
-                emit<ReportErrorHandler>('REPORT_ERROR', 'Your JSON file must contain ref tokens')
+                emit<ReportErrorHandler>('REPORT_ERROR', 'Your JSON file must contain ref tokens' as any)
             }
 
-            const variables = convertTokensToVariables(tokens)
+            const flatTokensMap: Token[] = []
 
-            console.log(variables)
-            console.log(getLocalVariables())
+            flattenTokens(tokens, flatTokensMap)
+
+            const interimVariables = flatTokensMap.map(token => new InterimVariable(token))//convertTokensToVariables(flatTokensMap)
+
+            refVariables = interimVariables.filter(item => !item.alias)
+            sysVariables = interimVariables.filter(item => item.alias)
+
+            emit<VariablesPreparedHandler>('VARIABLES_PREPARED', {
+                refToBeCreated: refVariables.filter(item => !item.existingFigmaVariable),
+                refToBeUpdated: refVariables.filter(item => !!item.existingFigmaVariable),
+                sysToBeCreated: sysVariables.filter(item => !item.existingFigmaVariable),
+                sysToBeUpdated: sysVariables.filter(item => !!item.existingFigmaVariable)
+            } as any)
 
         }
     )
 
-    showUI({height: 300, width: 320})
+    on('EXECUTE_IMPORT', ({
+                              refToBeCreated,
+                              refToBeUpdated,
+                              sysToBeCreated,
+                              sysToBeUpdated
+                          }: {
+        refToBeCreated: boolean
+        refToBeUpdated: boolean
+        sysToBeCreated: boolean
+        sysToBeUpdated: boolean
+    }) => {
+
+        console.log(refVariables)
+
+        if (refToBeCreated) {
+            refVariables.filter(item => !item.existingFigmaVariable).forEach(variable => variable.createFigmaVariable())
+        }
+
+        if (refToBeUpdated) {
+            refVariables.filter(item => !!item.existingFigmaVariable).forEach(variable => variable.createFigmaVariable())
+        }
+
+        if (sysToBeCreated) {
+            sysVariables.filter(item => !item.existingFigmaVariable).forEach(variable => variable.createFigmaVariable())
+        }
+
+        if (sysToBeUpdated) {
+            sysVariables.filter(item => !!item.existingFigmaVariable).forEach(variable => variable.createFigmaVariable())
+        }
+
+        refVariables = []
+        sysVariables = []
+
+        emit('IMPORT_FINISHED')
+    })
+
+    on('EXPORT_VARIABLES', () => {
+        const collections = getLocalVariableCollections().map(item => ({
+            id: item.id,
+            name: item.name,
+            modes: item.modes,
+            defaultModeId: item.defaultModeId
+        }))
+
+        const variables = getLocalVariables().map(item => ({
+            name: item.name,
+            id: item.id,
+            variableCollection: collections.find(collection => collection.id === item.variableCollectionId),
+            description: item.description,
+            valuesByMode: item.valuesByMode,
+            resolvedType: item.resolvedType
+        }))
+
+        emit('SAVE_VARIABLES_TO_FILE', variables as any);
+    })
+
+    showUI({height: 400, width: 320})
+
+    checkValidCollections()
+
+    console.log(figma);
 }

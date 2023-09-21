@@ -36,8 +36,8 @@ export const handleSelectedFiles = (files: Array<File>, importMode: ImportMode, 
 
     reader.onloadend = () => {
         if (typeof reader.result === 'string') {
-            callback();
             emit<EventHandler>('IMPORT_TOKENS', {json: reader.result, importMode} as any)
+            callback();
         }
     }
 }
