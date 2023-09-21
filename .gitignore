@@ -1,8 +1,11 @@
 # Node
 *.log
 *.log.*
+
 node_modules
 
+.idea/
 out/
 dist/
+build/
 src/code.js
