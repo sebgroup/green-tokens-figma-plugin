@@ -3,7 +3,7 @@ import {on} from "@create-figma-plugin/utilities";
 import {createContext, h} from "preact";
 import {useEffect, useReducer} from 'preact/hooks'
 import {Import, ImportExportSegmentedControl, PluginBannerWrapper} from "./components";
-import {IPluginReducerAction, IPluginState, ReportErrorHandler, VariablesPreparedHandler, ReducerAction} from "./types";
+import {IPluginState, ReportErrorHandler, VariablesPreparedHandler, ReducerAction} from "./types";
 import {pluginReducer} from "./reducers/plugin";
 import {Export} from "./components/Export";
 
@@ -13,6 +13,7 @@ const initialState: IPluginState = {
     importExport: 'import',
     importMode: 'ref',
     importState: 'ready',
+    localVariables: [],
     refToBeCreated: [],
     refToBeUpdated: [],
     sysToBeCreated: [],
@@ -32,6 +33,11 @@ function Plugin() {
     const [state, dispatch] = useReducer<IPluginState, ReducerAction>(pluginReducer, initialState)
 
     useEffect(() => {
+
+        on('GET_LOCAL_VARIABLES', (localVariables) => {
+            dispatch({type: 'SET_LOCAL_VARIABLES', localVariables})
+        })
+
         on<ReportErrorHandler>('REPORT_ERROR', (errorMsg) => {
             dispatch({type: 'SET_ERROR_MESSAGE', errorMsg})
         });
@@ -56,8 +62,7 @@ function Plugin() {
             link.setAttribute('download', name);
         })
 
-        on('IMPORT_FINISHED', (newVariables) => {
-            console.log(newVariables)
+        on('IMPORT_FINISHED', () => {
             dispatch({type: 'SET_IMPORT_STATE', importState: 'finished'})
         })
 

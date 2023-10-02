@@ -7,6 +7,12 @@ export function pluginReducer(state: IPluginState, action: ReducerAction): IPlug
             importState: action.importState
         }
     }
+    if (action.type === 'SET_LOCAL_VARIABLES') {
+        return {
+            ...state,
+            localVariables: action.localVariables
+        }
+    }
     if (action.type === 'SET_ERROR_MESSAGE') {
         return {
             ...state,

@@ -11,7 +11,7 @@ export class InterimVariable {
     resolvedDataType: VariableResolvedDataType
     alias: boolean
     originalId?: string
-    existingFigmaVariable: Variable | undefined
+    existingFigmaVariable: Variable | undefined | null
     variableCollectionId: string | undefined | null
     variableCollection: VariableCollection | null | undefined
 
@@ -23,18 +23,22 @@ export class InterimVariable {
         this.originalId = token.attributes.figma.originalId
         this.alias = !!this.originalId
 
-
-        this.checkForExistingVar()
+        this.setUpExistingVariable(token)
         this.setUpVariableCollection()
         this.setUpValuesByMode(token)
     }
 
-    private checkForExistingVar() {
-        //worker.postMessage({data: [20,20]})
-        this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => {
-            if (variable.id === this.id) return true
-            if (variable.name === this.name) return true
-        })
+    private setUpExistingVariable (token: Token) {
+        if (!token.attributes.figma.originalId && token.attributes.figma.matchedVariable?.id) {
+
+            this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => variable.id === token.attributes.figma.matchedVariable?.id)
+
+            this.alias = this.existingFigmaVariable?.name !== this.name;
+
+        } else if (token.attributes.figma.originalId) {
+            this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => variable.id === token.attributes.figma.matchedVariable?.id)
+        }
+
     }
 
     private setUpVariableCollection() {
@@ -45,13 +49,19 @@ export class InterimVariable {
 
         try {
             if (this.id) {
-                this.variableCollectionId = figma.variables.getVariableById(this.id)?.variableCollectionId
+                this.variableCollectionId = figma.variables.getLocalVariables().find(variable => variable.id === this.id)?.variableCollectionId
 
                 if (this.variableCollectionId) {
-                    this.variableCollection = figma.variables.getVariableCollectionById(this.variableCollectionId)
+                    this.variableCollection = figma.variables.getLocalVariableCollections().find(collection => collection.id === this.variableCollectionId)
+                }
+            } else {
+                if (this.alias) {
+                    this.variableCollection = figma.variables.getLocalVariableCollections().find(collection => collection.name.toLowerCase() === 'sys')
+                    this.variableCollectionId = this.variableCollection?.id
                 }
             }
         } catch (err) {
+            console.error(err)
             const localCollections = figma.variables.getLocalVariableCollections()
 
             if (this.originalId) {
@@ -87,16 +97,16 @@ export class InterimVariable {
                             b: rgbaColor[2] / 255,
                             a: rgbaColor[3]
                         };
-                    } else if (token.attributes.figma.resolvedType === "FLOAT" && typeof token.value === 'string') {
-                        this.newValuesByMode[mode.modeId] = parseFloat(token.value);
+                    } else if (token.attributes.figma.resolvedType === "FLOAT" && typeof value === 'string') {
+                        this.newValuesByMode[mode.modeId] = parseFloat(value);
                     } else {
-                        this.newValuesByMode[mode.modeId] = token.value;
+                        this.newValuesByMode[mode.modeId] = value;
                     }
 
                 }
             })
         } else {
-            this.newValuesByMode['light'] = token.value;
+            this.newValuesByMode['default'] = token.value;
             if (token.darkValue) {
                 this.newValuesByMode['dark'] = token.darkValue;
             }
@@ -146,5 +156,20 @@ export class InterimVariable {
             console.error('To create a Figma variable we need the following properties: name, variableCollectionId, type')
         }
 
+    }
+
+    updateValueByMode() {
+        if (!this.variableCollection) return
+
+        if (this.alias) {
+            this.variableCollection.modes.forEach(mode => {
+                if (this.newValuesByMode[mode.modeId]) {
+                    this.existingFigmaVariable?.setValueForMode(mode.modeId, this.newValuesByMode[mode.modeId])
+                }
+            })
+
+        } else {
+            this.existingFigmaVariable?.setValueForMode(this.variableCollection.defaultModeId, this.newValuesByMode[this.variableCollection.defaultModeId])
+        }
     }
 }

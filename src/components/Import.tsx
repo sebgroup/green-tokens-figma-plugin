@@ -1,7 +1,5 @@
 import {createElement, h} from "preact";
-import {handleSelectedFiles} from "../helpers";
 import {
-    Banner,
     Bold,
     FileUploadButton,
     FileUploadDropzone,
@@ -9,16 +7,36 @@ import {
     Text,
     VerticalSpace,
     LoadingIndicator,
-    MiddleAlign,
     IconCheckCircle32,
-    Button, Stack, Checkbox, SegmentedControl, Divider, Columns
+    Button, Stack, Checkbox, Columns
 } from "@create-figma-plugin/ui";
-import {TargetedEvent, useContext, useState} from "preact/compat";
+import {useContext, useState} from "preact/compat";
 import {PluginContext, PluginDispatchContext} from "../ui";
-import {PreactElement} from "preact/src/internal";
-import {ImportStateComponentEnum} from "../types";
+import {ImportStateComponentEnum, IVariable, ReducerAction, Tokens} from "../types";
 import JSX = createElement.JSX;
-import {emit} from "@create-figma-plugin/utilities";
+import {emit, EventHandler} from "@create-figma-plugin/utilities";
+import {worker} from "../workers/worker";
+
+function handleSelectedFiles(files: File[], localVariables: Pick<IVariable, "id" | "name">[], dispatch: (action: ReducerAction) => void) {
+    const reader = new FileReader()
+    reader.readAsText(files[0])
+
+    reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+            const tokens: Tokens = JSON.parse(reader.result) as { ref: any, sys: any }
+
+            if (!tokens.ref) {
+                dispatch({type: 'SET_ERROR_MESSAGE', errorMsg: 'Your JSON file must contain ref tokens'})
+            }
+
+            worker.postMessage({tokens, localVariables})
+
+            worker.onmessage = ({data: tokens}) => {
+                emit<EventHandler>('IMPORT_TOKENS', tokens)
+            }
+        }
+    }
+}
 
 function ConfirmImport(): JSX.Element {
     const dispatch = useContext(PluginDispatchContext)
@@ -38,7 +56,6 @@ function ConfirmImport(): JSX.Element {
                 <Text>Create ref variables ({state.refToBeCreated?.length})</Text>
             </Checkbox>
             <Checkbox
-                disabled={true}
                 value={refUpdateState}
                 onChange={(event) => {
                     setRefUpdateState(event.currentTarget.checked)
@@ -46,7 +63,6 @@ function ConfirmImport(): JSX.Element {
                 <Text>Update ref variables ({state.refToBeUpdated?.length})</Text>
             </Checkbox>
             <Checkbox
-                disabled={true}
                 value={sysCreateState}
                 onChange={(event) => {
                     setSysCreateState(event.currentTarget.checked)
@@ -54,7 +70,6 @@ function ConfirmImport(): JSX.Element {
                 <Text>Create sys variables ({state.sysToBeCreated?.length})</Text>
             </Checkbox>
             <Checkbox
-                disabled={true}
                 value={sysUpdateState}
                 onChange={(event) => {
                     setSysUpdateState(event.currentTarget.checked)
@@ -94,13 +109,19 @@ function FinishedImport(): JSX.Element {
     return (
         <Columns space="small">
             <div></div>
-            <div style={{height: 240, display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
-                    <IconCheckCircle32 />
-                    <Text>Import done</Text>
-                    <VerticalSpace space="large" />
-                    <Button secondary fullWidth onClick={() => {
-                        dispatch({type: "SET_IMPORT_STATE", importState: 'ready'})
-                    }}>Import again</Button>
+            <div style={{
+                height: 240,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column'
+            }}>
+                <IconCheckCircle32/>
+                <Text>Import done</Text>
+                <VerticalSpace space="large"/>
+                <Button secondary fullWidth onClick={() => {
+                    dispatch({type: "SET_IMPORT_STATE", importState: 'ready'})
+                }}>Import again</Button>
             </div>
             <div></div>
         </Columns>
@@ -114,9 +135,8 @@ const ImportEnum: ImportStateComponentEnum = {
     finished: <FinishedImport/>
 }
 
-
 function ReadToImport(): JSX.Element {
-    const {importMode} = useContext(PluginContext)
+    const state = useContext(PluginContext)
     const dispatch = useContext(PluginDispatchContext)
     return (
         <Stack space="extraSmall">
@@ -134,11 +154,9 @@ function ReadToImport(): JSX.Element {
                                       importMode: e.currentTarget.value as 'ref' | 'sys'
                                   })
                               }}/>*/}
-            <FileUploadDropzone acceptedFileTypes={['application/json']} onSelectedFiles={(files) => {
-                handleSelectedFiles(files, importMode, () => dispatch({
-                    type: 'SET_IMPORT_STATE',
-                    importState: 'finished'
-                }))
+            <FileUploadDropzone acceptedFileTypes={['application/json']} onSelectedFiles={async (files) => {
+                dispatch({type: 'SET_IMPORT_STATE', importState: 'loading'})
+                handleSelectedFiles(files, state.localVariables, dispatch)
             }}>
                 <Text align="center">
                     <Bold>Drop token file here to import</Bold>
@@ -148,15 +166,9 @@ function ReadToImport(): JSX.Element {
                     <Muted>or</Muted>
                 </Text>
                 <VerticalSpace space="small"/>
-                <FileUploadButton acceptedFileTypes={['application/json']} onSelectedFiles={(files) => {
+                <FileUploadButton acceptedFileTypes={['application/json']} onSelectedFiles={async (files) => {
                     dispatch({type: 'SET_IMPORT_STATE', importState: 'loading'})
-
-                        setTimeout(() => {
-                            handleSelectedFiles(files, importMode, () => dispatch({
-                                type: 'SET_IMPORT_STATE',
-                                importState: 'finished'
-                            }))
-                        }, 500)
+                    handleSelectedFiles(files, state.localVariables, dispatch)
                 }}>
                     Select token file to import
                 </FileUploadButton>

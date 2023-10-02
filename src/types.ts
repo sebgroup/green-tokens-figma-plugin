@@ -13,16 +13,18 @@ export interface ImportStateComponentEnum {
 
 export type ImportState = keyof ImportStateComponentEnum;
 
-export interface IPluginState extends PreparedVariables{
+export interface IPluginState extends PreparedVariables {
     errorMsg: string | null
     successMsg: string | null
     importExport: 'import' | 'export'
     importMode: ImportMode
     importState: ImportState
+    localVariables: Pick<IVariable, "id" | "name">[]
 }
 
-interface IReducerAction {
-    type: string
+interface SetLocalVariables {
+    type: 'SET_LOCAL_VARIABLES'
+    localVariables: Pick<IVariable, "id" | "name">[]
 }
 
 interface ImportExportAction {
@@ -57,7 +59,13 @@ interface PreparedDataAction {
     data: PreparedVariables
 }
 
-export type ReducerAction = ImportExportAction | ImportModeAction | ImportStateAction | ErrorAction | PreparedDataAction
+export type ReducerAction =
+    ImportExportAction
+    | ImportModeAction
+    | ImportStateAction
+    | ErrorAction
+    | PreparedDataAction
+    | SetLocalVariables
 
 export interface IPluginReducerAction extends IPluginState {
     type: string
@@ -92,6 +100,10 @@ export interface Token {
             collectionId: VariableResolvedDataType
             alias: boolean
             originalId: string
+            matchedVariable?: {
+                id: string
+                name: string
+            }
         }
     }
     path: string[]
