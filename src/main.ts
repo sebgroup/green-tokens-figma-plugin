@@ -5,13 +5,26 @@ import {InterimVariable} from "./classes/InterimVariable";
 
 const {getLocalVariableCollections, getLocalVariables} = figma.variables
 
+function getLocalData() {
+
+    return {
+        localVariables: figma.variables.getLocalVariables().map(variable => ({
+            id: variable.id,
+            name: variable.name
+        })),
+        localCollections: figma.variables.getLocalVariableCollections().map(collection => ({
+            id: collection.id,
+            name: collection.name
+        }))
+    }
+}
 
 function checkValidCollections() {
     const localCollections = getLocalVariableCollections()
     localCollections.forEach(collection => {
         const {name} = collection
         if (VALID_COLLECTIONS_NAMES.includes(name)) return
-        throw new Error(`Your Figma file must contain two variable collections named ${VALID_COLLECTIONS_NAMES.join('and ')} in order for this plugin to work.`)
+        throw new Error(`Your Figma file must contain two variable collections named ${VALID_COLLECTIONS_NAMES.join(' and ')} in order for this plugin to work.`)
     })
 }
 
@@ -25,7 +38,6 @@ export default () => {
 
             refVariables = interimVariables.filter(item => !item.alias)
             sysVariables = interimVariables.filter(item => item.alias)
-
 
             emit<EventHandler>('VARIABLES_PREPARED', {
                 refToBeCreated: refVariables.filter(item => !item.existingFigmaVariable),
@@ -59,6 +71,7 @@ export default () => {
                     variable.updateValueByMode()
                 }
             })
+
 
             sysVariables.forEach(variable => {
                 if (sysToBeCreated && !variable.existingFigmaVariable) {
@@ -97,13 +110,15 @@ export default () => {
         emit('SAVE_VARIABLES_TO_FILE', variables as any);
     })
 
-    checkValidCollections()
+    on('CREATE_REF_AND_SYS_COLLECTIONS', () => {
+        figma.variables.createVariableCollection('ref')
+        const sysCollection = figma.variables.createVariableCollection('sys')
+        sysCollection.renameMode(sysCollection.defaultModeId, 'Light')
+        sysCollection.addMode('Dark')
+        emit('SET_LOCAL_DATA', getLocalData())
+    })
 
     showUI({height: 400, width: 320})
 
-    emit('GET_LOCAL_VARIABLES', figma.variables.getLocalVariables().map(variable => ({
-        id: variable.id,
-        name: variable.name
-    })))
-
+    emit('SET_LOCAL_DATA', getLocalData())
 }

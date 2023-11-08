@@ -20,11 +20,17 @@ export interface IPluginState extends PreparedVariables {
     importMode: ImportMode
     importState: ImportState
     localVariables: Pick<IVariable, "id" | "name">[]
+    localCollections: Pick<VariableCollection, "id" | "name">[]
 }
 
 interface SetLocalVariables {
     type: 'SET_LOCAL_VARIABLES'
     localVariables: Pick<IVariable, "id" | "name">[]
+}
+
+interface SetLocalCollections {
+    type: 'SET_LOCAL_COLLECTIONS'
+    localCollections: Pick<VariableCollection, "id" | "name">[]
 }
 
 interface ImportExportAction {
@@ -66,6 +72,7 @@ export type ReducerAction =
     | ErrorAction
     | PreparedDataAction
     | SetLocalVariables
+    | SetLocalCollections
 
 export interface IPluginReducerAction extends IPluginState {
     type: string
@@ -99,7 +106,10 @@ export interface Token {
             resolvedType: VariableResolvedDataType
             collectionId: VariableResolvedDataType
             alias: boolean
-            originalId: string
+            originalLightId: string
+            originalLightName: string
+            originalDarkId: string
+            originalDarkName: string
             matchedVariable?: {
                 id: string
                 name: string

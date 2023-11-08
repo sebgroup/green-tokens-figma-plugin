@@ -4,7 +4,7 @@ A Figma plugin that imports and updates Figma variables
 
 ## How it works
 
-Using [Green tokens](https://github.com/sebgroup/green-tokens) you can genereate a json file with the correct structure to be imported with this Figma plugin.
+Using [Green tokens](https://github.com/sebgroup/green/tree/main/libs/tokens) you can genereate a json file with the correct structure to be imported with this Figma plugin. You can also install the latest version of our token through npm at [@sebgroup/green-tokens](https://www.npmjs.com/package/@sebgroup/green-tokens)
 
 ## Requirements
 

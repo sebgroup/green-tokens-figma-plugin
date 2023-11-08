@@ -13,6 +13,12 @@ export function pluginReducer(state: IPluginState, action: ReducerAction): IPlug
             localVariables: action.localVariables
         }
     }
+    if (action.type === 'SET_LOCAL_COLLECTIONS') {
+        return {
+            ...state,
+            localCollections: action.localCollections
+        }
+    }
     if (action.type === 'SET_ERROR_MESSAGE') {
         return {
             ...state,

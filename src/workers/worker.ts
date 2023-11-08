@@ -20,7 +20,6 @@ const blob = new Blob([`
 
         flatTokensMap.forEach((token, index) => {
             const matchedVariable = localVariables.find(variable => {
-                if (variable.id === token.id) return true
                 if (variable.name === token.name) return true
                 return false
             })

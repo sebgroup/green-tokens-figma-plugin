@@ -8,7 +8,8 @@ import {
     VerticalSpace,
     LoadingIndicator,
     IconCheckCircle32,
-    Button, Stack, Checkbox, Columns
+    IconWarning32,
+    Button, Stack, Checkbox, Columns, Banner
 } from "@create-figma-plugin/ui";
 import {useContext, useState} from "preact/compat";
 import {PluginContext, PluginDispatchContext} from "../ui";
@@ -97,6 +98,7 @@ function ConfirmImport(): JSX.Element {
                 <div>
                     <Button secondary fullWidth onClick={() => {
                         dispatch({type: "SET_IMPORT_STATE", importState: 'ready'})
+                        dispatch({type: "SET_ERROR_MESSAGE", errorMsg: null})
                     }}>Cancel import</Button>
                 </div>
             </Stack>
@@ -140,20 +142,6 @@ function ReadToImport(): JSX.Element {
     const dispatch = useContext(PluginDispatchContext)
     return (
         <Stack space="extraSmall">
-            {/*<Banner icon={<IconInfo32/>}>This plugin only supports import of <Bold>ref</Bold> tokens</Banner>
-            <Banner icon={<IconInfo32/>}>To update existing variables the tokens that are imported need to contain a
-                Figma Variable ID</Banner>*/}
-            {/*<SegmentedControl options={[{value: "ref", children: 'Import REF tokens'}, {
-                value: "sys",
-                children: 'Import SYS tokens'
-            }]}
-                              value={importMode}
-                              onChange={(e: TargetedEvent<HTMLInputElement>) => {
-                                  dispatch({
-                                      type: 'SET_IMPORT_MODE',
-                                      importMode: e.currentTarget.value as 'ref' | 'sys'
-                                  })
-                              }}/>*/}
             <FileUploadDropzone acceptedFileTypes={['application/json']} onSelectedFiles={async (files) => {
                 dispatch({type: 'SET_IMPORT_STATE', importState: 'loading'})
                 handleSelectedFiles(files, state.localVariables, dispatch)
@@ -177,10 +165,30 @@ function ReadToImport(): JSX.Element {
     )
 }
 
-export const Import = (): JSX.Element => {
-    const context = useContext(PluginContext)
+function CreateCollections() {
+    return (
+        <Stack space={'medium'}>
+            <Banner variant={"warning"} icon={<IconWarning32/>}>
+                    In order for this plugin to work you need to have two collections called REF and SYS
+            </Banner>
+            <Button fullWidth onClick={() => {
+                emit('CREATE_REF_AND_SYS_COLLECTIONS')
+            }}>Create collections</Button>
+        </Stack>
+    )
+}
 
-    if (context?.importState) return ImportEnum[context.importState]
+export const Import = (): JSX.Element => {
+    const {importState,localCollections} = useContext(PluginContext)
+    const localCollectionNames = localCollections.map(collection => {
+        return collection.name.toLowerCase()
+    })
+
+    if (importState === 'loading') return ImportEnum[importState]
+
+    if (!localCollectionNames.includes("ref") && !localCollectionNames.includes("sys")) return <CreateCollections />
+
+    if (importState) return ImportEnum[importState]
 
     return ImportEnum.ready
 }

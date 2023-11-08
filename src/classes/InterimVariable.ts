@@ -11,6 +11,9 @@ export class InterimVariable {
     resolvedDataType: VariableResolvedDataType
     alias: boolean
     originalId?: string
+    originalName?: string
+    originalLightName?: string
+    originalDarkName?: string
     existingFigmaVariable: Variable | undefined | null
     variableCollectionId: string | undefined | null
     variableCollection: VariableCollection | null | undefined
@@ -20,25 +23,24 @@ export class InterimVariable {
         this.name = token.path.slice(1, token.path.length).join('/')
         this.description = token.description
         this.resolvedDataType = token.attributes.figma.resolvedType
-        this.originalId = token.attributes.figma.originalId
-        this.alias = !!this.originalId
+        this.originalId = token.attributes.figma.id
+        this.originalLightName = token.attributes.figma.originalLightName
+        this.originalDarkName = token.attributes.figma.originalDarkName
+        this.alias = !!token.attributes.figma.originalLightId || !!token.attributes.figma.originalDarkId
+
+        if (this.resolvedDataType === 'FLOAT') this.originalDarkName = this.originalLightName
 
         this.setUpExistingVariable(token)
         this.setUpVariableCollection()
         this.setUpValuesByMode(token)
     }
 
-    private setUpExistingVariable (token: Token) {
-        if (!token.attributes.figma.originalId && token.attributes.figma.matchedVariable?.id) {
-
-            this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => variable.id === token.attributes.figma.matchedVariable?.id)
-
-            this.alias = this.existingFigmaVariable?.name !== this.name;
-
-        } else if (token.attributes.figma.originalId) {
-            this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => variable.id === token.attributes.figma.matchedVariable?.id)
+    private setUpExistingVariable(token: Token) {
+        if (token.attributes.figma.matchedVariable) {
+            this.existingFigmaVariable = figma.variables.getLocalVariables().find(variable => variable.name === token.attributes.figma.matchedVariable?.name)
+        } else {
+            this.existingFigmaVariable = undefined
         }
-
     }
 
     private setUpVariableCollection() {
@@ -54,12 +56,18 @@ export class InterimVariable {
                 if (this.variableCollectionId) {
                     this.variableCollection = figma.variables.getLocalVariableCollections().find(collection => collection.id === this.variableCollectionId)
                 }
-            } else {
+            }
+
+            if (!this.variableCollection) {
                 if (this.alias) {
                     this.variableCollection = figma.variables.getLocalVariableCollections().find(collection => collection.name.toLowerCase() === 'sys')
                     this.variableCollectionId = this.variableCollection?.id
+                } else {
+                    this.variableCollection = figma.variables.getLocalVariableCollections().find(collection => collection.name.toLowerCase() === 'ref')
+                    this.variableCollectionId = this.variableCollection?.id
                 }
             }
+
         } catch (err) {
             console.error(err)
             const localCollections = figma.variables.getLocalVariableCollections()
@@ -77,9 +85,55 @@ export class InterimVariable {
     }
 
     private setUpValuesByMode(token: Token) {
+        let exsistingLightVariable: Variable | undefined;
+        let exsistingDarkVariable: Variable | undefined;
+
+        if (this.alias) {
+            exsistingLightVariable = figma.variables.getLocalVariables().find(variable => {
+                return variable.name === token.attributes.figma.originalLightName
+            })
+
+            exsistingDarkVariable = figma.variables.getLocalVariables().find(variable => {
+                return variable.name === token.attributes.figma.originalDarkName
+            })
+        }
+
         if (this.variableCollection) {
             this.variableCollection.modes.forEach(mode => {
-                const value = mode.name.toLowerCase() === 'dark' ? token.darkValue : token.value;
+                let value
+
+                if (mode.name.toLowerCase() === 'dark') {
+                    if (token.attributes.figma.resolvedType === 'FLOAT') {
+                        exsistingDarkVariable = exsistingLightVariable
+                    }
+
+                    if (token.darkValue) {
+                        value = token.darkValue
+                    } else {
+                        value = token.value;
+                    }
+                } else {
+                    value = token.value;
+                }
+
+                if (this.alias && value) {
+                    if (mode.name.toLowerCase() === 'dark') {
+                        if (exsistingDarkVariable) {
+                            this.newValuesByMode[mode.modeId] = {type: 'VARIABLE_ALIAS', id: exsistingDarkVariable.id}
+                        } else {
+                            this.newValuesByMode[mode.modeId] = {type: 'VARIABLE_ALIAS', id: 'getLocal'}
+                        }
+                    }
+                    if (mode.name.toLowerCase() === 'light') {
+                        if (exsistingLightVariable) {
+                            this.newValuesByMode[mode.modeId] = {type: 'VARIABLE_ALIAS', id: exsistingLightVariable.id}
+                        } else {
+                            this.newValuesByMode[mode.modeId] = {type: 'VARIABLE_ALIAS', id: 'getLocal'}
+                        }
+                    }
+                    return
+                }
+
                 if (!value) {
                     if (token.attributes.figma.resolvedType === "COLOR") {
                         console.error(`No dark mode value set on token: ${token.name}`)
@@ -102,7 +156,6 @@ export class InterimVariable {
                     } else {
                         this.newValuesByMode[mode.modeId] = value;
                     }
-
                 }
             })
         } else {
@@ -112,7 +165,6 @@ export class InterimVariable {
             }
 
         }
-
     }
 
     /* Checks if there is diff between token value being imported and variable value in Figma */
@@ -144,11 +196,42 @@ export class InterimVariable {
 
     createFigmaVariable() {
         if (this.name && this.variableCollectionId && this.resolvedDataType) {
+            const figmaVariable: Variable | undefined = figma.variables.createVariable(this.name, this.variableCollectionId, this.resolvedDataType)
 
-            const figmaVariable = figma.variables.createVariable(this.name, this.variableCollectionId, this.resolvedDataType)
+            if (this.alias) {
+                const localVariables = figma.variables.getLocalVariables().map(({id, name}) => ({id, name}))
 
-            for (const [modeId, value] of Object.entries(this.newValuesByMode)) {
-                figmaVariable.setValueForMode(modeId, value)
+                for (const [modeId, value] of Object.entries(this.newValuesByMode)) {
+                    if (typeof value === 'object' && 'id' in value) {
+                        if (localVariables.map(({id}) => (id)).includes(value.id)) {
+                            figmaVariable.setValueForMode(modeId, value)
+                        } else if (value.id === 'getLocal') {
+
+                            const currentMode = figma.variables.getVariableCollectionById(this.variableCollectionId)?.modes.find(({modeId: currentmodeId}) => (currentmodeId === modeId))
+                            if (currentMode && currentMode.name.toLowerCase() === 'light') {
+                                const ref = localVariables.find(variable => (variable.name === this.originalLightName))
+                                if (ref) {
+                                    value.id = ref.id
+                                    figmaVariable.setValueForMode(modeId, value)
+                                }
+                            }
+
+                            if (currentMode && currentMode.name.toLowerCase() === 'dark') {
+                                const ref = localVariables.find(variable => (variable.name === this.originalDarkName))
+                                if (ref) {
+                                    value.id = ref.id
+                                    figmaVariable.setValueForMode(modeId, value)
+                                } else if (this.resolvedDataType === 'FLOAT') {}
+                            }
+                        } else {
+                            console.error('Alias variable not found... ', value)
+                        }
+                    }
+                }
+            } else {
+                for (const [modeId, value] of Object.entries(this.newValuesByMode)) {
+                    figmaVariable.setValueForMode(modeId, value)
+                }
             }
 
             return figmaVariable
@@ -161,14 +244,14 @@ export class InterimVariable {
     updateValueByMode() {
         if (!this.variableCollection) return
 
-        if (this.alias) {
+        if (this.alias && this.existingFigmaVariable) {
             this.variableCollection.modes.forEach(mode => {
                 if (this.newValuesByMode[mode.modeId]) {
                     this.existingFigmaVariable?.setValueForMode(mode.modeId, this.newValuesByMode[mode.modeId])
                 }
             })
 
-        } else {
+        } else if (this.existingFigmaVariable) {
             this.existingFigmaVariable?.setValueForMode(this.variableCollection.defaultModeId, this.newValuesByMode[this.variableCollection.defaultModeId])
         }
     }

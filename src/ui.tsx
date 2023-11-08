@@ -12,12 +12,13 @@ const initialState: IPluginState = {
     successMsg: null,
     importExport: 'import',
     importMode: 'ref',
-    importState: 'ready',
+    importState: 'loading',
     localVariables: [],
     refToBeCreated: [],
     refToBeUpdated: [],
     sysToBeCreated: [],
     sysToBeUpdated: [],
+    localCollections: []
 }
 
 export const PluginContext = createContext<IPluginState>(initialState)
@@ -33,9 +34,10 @@ function Plugin() {
     const [state, dispatch] = useReducer<IPluginState, ReducerAction>(pluginReducer, initialState)
 
     useEffect(() => {
-
-        on('GET_LOCAL_VARIABLES', (localVariables) => {
+        on('SET_LOCAL_DATA', ({localVariables, localCollections}) => {
             dispatch({type: 'SET_LOCAL_VARIABLES', localVariables})
+            dispatch({type: 'SET_LOCAL_COLLECTIONS', localCollections})
+            dispatch({type: 'SET_IMPORT_STATE', importState: 'ready'})
         })
 
         on<ReportErrorHandler>('REPORT_ERROR', (errorMsg) => {
