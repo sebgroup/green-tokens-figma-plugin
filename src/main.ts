@@ -118,6 +118,25 @@ export default () => {
         emit('SET_LOCAL_DATA', getLocalData())
     })
 
+    figma.on('selectionchange', () => {
+        const selectedNodes = figma.currentPage.selection;
+        if (selectedNodes.length > 0) {
+            const nodeId = selectedNodes[0].id.replace(':', '-');
+            figma.ui.postMessage({ type: 'NODE_SELECTED', nodeId });
+            console.log("Selected node ID:", nodeId);
+        } else {
+            figma.ui.postMessage({ type: 'NODE_SELECTED', nodeId: null });
+            console.log("No node selected");
+        }
+    });
+
+    figma.ui.onmessage = (message) => {
+        if (message.type === 'COPIED_TO_CLIPBOARD') {
+            figma.notify('Node copied to clipboard!');
+            // figma.notify('Copied to clipboard: ' + message.text);
+        }
+    };
+
     showUI({height: 400, width: 320})
 
     emit('SET_LOCAL_DATA', getLocalData())
