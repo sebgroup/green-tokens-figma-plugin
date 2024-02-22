@@ -26,9 +26,15 @@
     "editorType": [
       "figma"
     ],
-    "id": "",
-    "name": "Green Tokens",
+    "id": "1290624141153825642",
+    "name": "Green Design System",
     "main": "src/main.ts",
-    "ui": "src/ui.tsx"
+    "ui": "src/ui.tsx",
+    "networkAccess": {
+      "allowedDomains": [
+        "https://seb.io",
+        "https://api.seb.io"
+      ]
+    }
   }
 }
