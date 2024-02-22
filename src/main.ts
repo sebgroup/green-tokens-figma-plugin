@@ -112,9 +112,7 @@ export default () => {
   });
 
   on("COPIED_TO_CLIPBOARD", (message) => {
-    if (message.type === "COPIED_TO_CLIPBOARD") {
-      figma.notify("Node copied to clipboard!");
-    }
+    figma.notify("Node copied to clipboard!");
   });
 
   showUI({ height: 400, width: 320 });
