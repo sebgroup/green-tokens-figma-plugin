@@ -10,7 +10,7 @@
   "author": "Vilhelm Sjölander",
   "license": "MIT",
   "devDependencies": {
-    "@create-figma-plugin/build": "^2.6.1",
+    "@create-figma-plugin/build": "^3.2.0",
     "@create-figma-plugin/tsconfig": "^2.6.1",
     "@figma/plugin-typings": "^1.76.0",
     "typescript": ">=4"
