@@ -1,6 +1,5 @@
 import { EventHandler } from "@create-figma-plugin/utilities";
 import { JSX } from "preact";
-import { InterimVariable } from "./classes/InterimVariable";
 
 export type ImportMode = "ref" | "sys";
 
@@ -59,13 +58,6 @@ interface ImportToCollectionAction {
 interface ErrorAction {
   type: "SET_ERROR_MESSAGE";
   errorMsg: string | null;
-}
-
-interface PreparedVariables {
-  refToBeCreated: InterimVariable[];
-  refToBeUpdated: InterimVariable[];
-  sysToBeCreated: InterimVariable[];
-  sysToBeUpdated: InterimVariable[];
 }
 
 interface PreparedDataAction {
