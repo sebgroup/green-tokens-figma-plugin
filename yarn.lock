@@ -55,6 +55,15 @@
     natural-compare-lite "1.4.0"
     rgb-hex "^4.0.1"
 
+"@create-figma-plugin/utilities@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@create-figma-plugin/utilities/-/utilities-3.2.0.tgz#63d2e95cd731d5459d30d93090ddcef545bcfb36"
+  integrity sha512-+5JddDqI6XjVJs0EqgLd+6B9ukjhHFEBesqPI/e0okqS+Ay7Gt3xsD0vMrZjVYfJcmRAprgJhdGBGJZjOZiQIA==
+  dependencies:
+    hex-rgb "^5.0.0"
+    natural-compare-lite "1.4.0"
+    rgb-hex "^4.1.0"
+
 "@esbuild/android-arm64@0.19.2":
   version "0.19.2"
   resolved "https://registry.yarnpkg.com/@esbuild/android-arm64/-/android-arm64-0.19.2.tgz#bc35990f412a749e948b792825eef7df0ce0e073"
@@ -1417,7 +1426,7 @@ rev-hash@^4.0.0:
   resolved "https://registry.yarnpkg.com/rev-hash/-/rev-hash-4.0.0.tgz#0ae8454d76c26b074abbd0aec741d72dec3323a1"
   integrity sha512-5w/auZRs65pf1AkZIbfICeorQfOCb6XVWaHmDEbkMyjmyRMxck+W0Erdj9zffuBRXxn5cbKfgmWQ9GpgR8dFZQ==
 
-rgb-hex@^4.0.1:
+rgb-hex@^4.0.1, rgb-hex@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/rgb-hex/-/rgb-hex-4.1.0.tgz#b343f394c8f9df629a7504c34c00b5bc63bd006f"
   integrity sha512-UZLM57BW09Yi9J1R3OP8B1yCbbDK3NT8BDtihGZkGkGEs2b6EaV85rsfJ6yK4F+8UbxFFmfA+9xHT5ZWhN1gDQ==
