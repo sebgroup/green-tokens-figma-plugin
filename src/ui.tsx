@@ -3,7 +3,7 @@ import { on } from "@create-figma-plugin/utilities";
 import { createContext, h } from "preact";
 import { useEffect, useReducer, useState } from "preact/hooks";
 import { Import, ImportExportSegmentedControl, PluginBannerWrapper } from "./components";
-import { IPluginState, ReportErrorHandler, VariablesPreparedHandler, ReducerAction } from "./types";
+import { IPluginState, ReportErrorHandler, ReducerAction } from "./types";
 import { pluginReducer } from "./reducers/plugin";
 import { Export } from "./components/Export";
 import { NodeFinder } from "./components/NodeFinder";
@@ -15,10 +15,6 @@ const initialState: IPluginState = {
   importMode: "ref",
   importState: "loading",
   localVariables: [],
-  refToBeCreated: [],
-  refToBeUpdated: [],
-  sysToBeCreated: [],
-  sysToBeUpdated: [],
   localCollections: [],
   importToCollection: null,
 };
@@ -45,11 +41,6 @@ function Plugin() {
 
     on<ReportErrorHandler>("REPORT_ERROR", (errorMsg) => {
       dispatch({ type: "SET_ERROR_MESSAGE", errorMsg });
-    });
-
-    on<VariablesPreparedHandler>("VARIABLES_PREPARED", (data) => {
-      //dispatch({ type: "SET_PREPARED_DATA", data });
-      dispatch({ type: "SET_IMPORT_STATE", importState: "approve" });
     });
 
     on("SAVE_VARIABLES_TO_FILE", (variables) => {

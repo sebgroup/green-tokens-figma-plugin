@@ -24,9 +24,10 @@ async function getLocalData() {
 
 function hexToFigmaColor(color: string) {
   return {
-    r: chroma(color).rgb()[0] / 255,
-    g: chroma(color).rgb()[1] / 255,
-    b: chroma(color).rgb()[2] / 255,
+    r: chroma(color).rgba()[0] / 255,
+    g: chroma(color).rgba()[1] / 255,
+    b: chroma(color).rgba()[2] / 255,
+    a: chroma(color).rgba()[3],
   };
 }
 
@@ -37,43 +38,78 @@ export default () => {
 
   on("EXECUTE_IMPORT", async ({ variablesToCreate, variablesToUpdate, collectionId }) => {
     const variableCollection = await figma.variables.getVariableCollectionByIdAsync(collectionId);
-    let lightModeId, darkModeId;
+    let lightModeId, darkModeId, spaciousModeId, compactModeId, standardModeId;
 
     if (variableCollection) {
       variableCollection.modes.forEach((mode) => {
-        if (mode.name.toUpperCase() === "LIGHT") {
-          lightModeId = mode.modeId;
-        }
-        if (mode.name.toUpperCase() === "DARK") {
-          darkModeId = mode.modeId;
+        switch (mode.name.toUpperCase()) {
+          case "LIGHT":
+            lightModeId = mode.modeId;
+            break;
+          case "DARK":
+            darkModeId = mode.modeId;
+            break;
+          case "COMPACT":
+            compactModeId = mode.modeId;
+            break;
+          case "STANDARD":
+            standardModeId = mode.modeId;
+            break;
+          case "SPACIOUS":
+            spaciousModeId = mode.modeId;
+            break;
+          default:
+            break;
         }
       });
 
-      if (!lightModeId) {
-        lightModeId = variableCollection.defaultModeId;
-        if (lightModeId) {
-          variableCollection.renameMode(lightModeId, "Light");
-        }
-      }
-
-      if (!darkModeId) {
-        darkModeId = variableCollection.addMode("Dark");
-      }
-
       for (let index = 0; index < variablesToCreate.length; index++) {
-        const variable = variablesToCreate[index];
-        const createdVariable = figma.variables.createVariable(variable.name, variableCollection, variable.type.toUpperCase());
+        const token = variablesToCreate[index];
+        const createdVariable = figma.variables.createVariable(token.name, variableCollection, token.type.toUpperCase());
 
         if (createdVariable.resolvedType === "COLOR") {
-          if (lightModeId && variable.value) {
-            createdVariable.setValueForMode(lightModeId, hexToFigmaColor(variable.value));
+          if (!lightModeId) {
+            lightModeId = variableCollection.defaultModeId;
+            variableCollection.renameMode(lightModeId, "Light");
+          }
+
+          if (!darkModeId) {
+            darkModeId = variableCollection.addMode("Dark");
+          }
+
+          if (lightModeId && token.value) {
+            createdVariable.setValueForMode(lightModeId, hexToFigmaColor(token.value));
           }
           if (darkModeId) {
-            if (variable.darkValue) {
-              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(variable.darkValue));
+            if (token.darkValue) {
+              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(token.darkValue));
             } else {
-              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(variable.value));
+              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(token.value));
             }
+          }
+        }
+
+        if (createdVariable.resolvedType === "FLOAT") {
+          if (!standardModeId) {
+            standardModeId = variableCollection.defaultModeId;
+          }
+
+          if (standardModeId && token.value) {
+            createdVariable.setValueForMode(standardModeId, parseFloat(token.value));
+          }
+
+          if (token.compactValue) {
+            if (!compactModeId) {
+              compactModeId = variableCollection.addMode("Compact");
+            }
+            createdVariable.setValueForMode(compactModeId, parseFloat(token.compactValue));
+          }
+
+          if (spaciousModeId && token.spaciousValue) {
+            if (!spaciousModeId) {
+              spaciousModeId = variableCollection.addMode("Spacious");
+            }
+            createdVariable.setValueForMode(spaciousModeId, parseFloat(token.spaciousValue));
           }
         }
       }
@@ -89,6 +125,23 @@ export default () => {
             }
             if (darkModeId && variable.darkValue) {
               figma.variables.getVariableById(variable.id)?.setValueForMode(darkModeId, hexToFigmaColor(variable.darkValue));
+            }
+          }
+
+          if (existingVariable.resolvedType === "FLOAT") {
+            if (standardModeId && variable.value) {
+              figma.variables.getVariableById(variable.id)?.setValueForMode(standardModeId, parseFloat(variable.value));
+            }
+            if (compactModeId && variable.compactValue) {
+              figma.variables.getVariableById(variable.id)?.setValueForMode(compactModeId, parseFloat(variable.compactValue));
+            }
+            if (spaciousModeId && variable.spaciousValue) {
+              figma.variables.getVariableById(variable.id)?.setValueForMode(spaciousModeId, parseFloat(variable.spaciousValue));
+            }
+
+            if (!standardModeId && !compactModeId && !spaciousModeId) {
+              const currentVariable = figma.variables.getVariableById(variable.id);
+              currentVariable?.setValueForMode(variableCollection.defaultModeId, parseFloat(variable.value));
             }
           }
         }

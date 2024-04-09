@@ -12,7 +12,7 @@ export interface ImportStateComponentEnum {
 
 export type ImportState = keyof ImportStateComponentEnum;
 
-export interface IPluginState extends PreparedVariables {
+export interface IPluginState {
   errorMsg: string | null;
   successMsg: string | null;
   importExport: "import" | "export";
@@ -82,11 +82,6 @@ export interface ImportTokensHandler extends EventHandler {
 export interface ReportErrorHandler extends EventHandler {
   name: "REPORT_ERROR";
   handler: (msg: string | null) => void;
-}
-
-export interface VariablesPreparedHandler extends EventHandler {
-  name: "VARIABLES_PREPARED";
-  handler: (args: PreparedVariables) => void;
 }
 
 export interface Token {
