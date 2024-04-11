@@ -12,13 +12,21 @@ async function getLocalData() {
   return {
     localVariables: await figma.variables
       .getLocalVariablesAsync()
-      .then((variables) => variables.map((variable) => ({ id: variable.id, name: variable.name, collectionId: variable.variableCollectionId }))),
-    localCollections: figma.variables.getLocalVariableCollections().map((collection) => ({
-      id: collection.id,
-      name: collection.name,
-      modes: collection.modes,
-      defaultModeId: collection.defaultModeId,
-    })),
+      .then((variables) =>
+        variables.map((variable) => ({
+          id: variable.id,
+          name: variable.name,
+          collectionId: variable.variableCollectionId,
+        }))
+      ),
+    localCollections: figma.variables
+      .getLocalVariableCollections()
+      .map((collection) => ({
+        id: collection.id,
+        name: collection.name,
+        modes: collection.modes,
+        defaultModeId: collection.defaultModeId,
+      })),
   };
 }
 
@@ -36,122 +44,179 @@ export default () => {
     console.log(data);
   });
 
-  on("EXECUTE_IMPORT", async ({ variablesToCreate, variablesToUpdate, collectionId }) => {
-    const variableCollection = await figma.variables.getVariableCollectionByIdAsync(collectionId);
-    let lightModeId, darkModeId, spaciousModeId, compactModeId, standardModeId;
+  on(
+    "EXECUTE_IMPORT",
+    async ({ variablesToCreate, variablesToUpdate, collectionId }) => {
+      const variableCollection =
+        await figma.variables.getVariableCollectionByIdAsync(collectionId);
+      let lightModeId,
+        darkModeId,
+        spaciousModeId,
+        compactModeId,
+        standardModeId;
 
-    if (variableCollection) {
-      variableCollection.modes.forEach((mode) => {
-        switch (mode.name.toUpperCase()) {
-          case "LIGHT":
-            lightModeId = mode.modeId;
-            break;
-          case "DARK":
-            darkModeId = mode.modeId;
-            break;
-          case "COMPACT":
-            compactModeId = mode.modeId;
-            break;
-          case "STANDARD":
-            standardModeId = mode.modeId;
-            break;
-          case "SPACIOUS":
-            spaciousModeId = mode.modeId;
-            break;
-          default:
-            break;
-        }
-      });
+      if (variableCollection) {
+        variableCollection.modes.forEach((mode) => {
+          switch (mode.name.toUpperCase()) {
+            case "LIGHT":
+              lightModeId = mode.modeId;
+              break;
+            case "DARK":
+              darkModeId = mode.modeId;
+              break;
+            case "COMPACT":
+              compactModeId = mode.modeId;
+              break;
+            case "STANDARD":
+              standardModeId = mode.modeId;
+              break;
+            case "SPACIOUS":
+              spaciousModeId = mode.modeId;
+              break;
+            default:
+              break;
+          }
+        });
 
-      for (let index = 0; index < variablesToCreate.length; index++) {
-        const token = variablesToCreate[index];
-        const createdVariable = figma.variables.createVariable(token.name, variableCollection, token.type.toUpperCase());
+        for (let index = 0; index < variablesToCreate.length; index++) {
+          const token = variablesToCreate[index];
+          const createdVariable = figma.variables.createVariable(
+            token.name,
+            variableCollection,
+            token.type.toUpperCase()
+          );
 
-        if (createdVariable.resolvedType === "COLOR") {
-          if (!lightModeId) {
-            lightModeId = variableCollection.defaultModeId;
-            variableCollection.renameMode(lightModeId, "Light");
+          if (createdVariable.resolvedType === "COLOR") {
+            if (!lightModeId) {
+              lightModeId = variableCollection.defaultModeId;
+              variableCollection.renameMode(lightModeId, "Light");
+            }
+
+            if (!darkModeId) {
+              darkModeId = variableCollection.addMode("Dark");
+            }
+
+            if (lightModeId && token.value) {
+              createdVariable.setValueForMode(
+                lightModeId,
+                hexToFigmaColor(token.value)
+              );
+            }
+            if (darkModeId) {
+              if (token.darkValue) {
+                createdVariable.setValueForMode(
+                  darkModeId,
+                  hexToFigmaColor(token.darkValue)
+                );
+              } else {
+                createdVariable.setValueForMode(
+                  darkModeId,
+                  hexToFigmaColor(token.value)
+                );
+              }
+            }
           }
 
-          if (!darkModeId) {
-            darkModeId = variableCollection.addMode("Dark");
-          }
+          if (createdVariable.resolvedType === "FLOAT") {
+            if (!standardModeId) {
+              standardModeId = variableCollection.defaultModeId;
+            }
 
-          if (lightModeId && token.value) {
-            createdVariable.setValueForMode(lightModeId, hexToFigmaColor(token.value));
-          }
-          if (darkModeId) {
-            if (token.darkValue) {
-              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(token.darkValue));
-            } else {
-              createdVariable.setValueForMode(darkModeId, hexToFigmaColor(token.value));
+            if (standardModeId && token.value) {
+              createdVariable.setValueForMode(
+                standardModeId,
+                parseFloat(token.value)
+              );
+            }
+
+            if (token.compactValue) {
+              if (!compactModeId) {
+                compactModeId = variableCollection.addMode("Compact");
+              }
+              createdVariable.setValueForMode(
+                compactModeId,
+                parseFloat(token.compactValue)
+              );
+            }
+
+            if (spaciousModeId && token.spaciousValue) {
+              if (!spaciousModeId) {
+                spaciousModeId = variableCollection.addMode("Spacious");
+              }
+              createdVariable.setValueForMode(
+                spaciousModeId,
+                parseFloat(token.spaciousValue)
+              );
             }
           }
         }
 
-        if (createdVariable.resolvedType === "FLOAT") {
-          if (!standardModeId) {
-            standardModeId = variableCollection.defaultModeId;
-          }
+        for (let index = 0; index < variablesToUpdate.length; index++) {
+          const variable = variablesToUpdate[index];
+          const existingVariable = figma.variables.getVariableById(variable.id);
 
-          if (standardModeId && token.value) {
-            createdVariable.setValueForMode(standardModeId, parseFloat(token.value));
-          }
-
-          if (token.compactValue) {
-            if (!compactModeId) {
-              compactModeId = variableCollection.addMode("Compact");
+          if (existingVariable) {
+            if (existingVariable.resolvedType === "COLOR") {
+              if (lightModeId && variable.value) {
+                figma.variables
+                  .getVariableById(variable.id)
+                  ?.setValueForMode(
+                    lightModeId,
+                    hexToFigmaColor(variable.value)
+                  );
+              }
+              if (darkModeId && variable.darkValue) {
+                figma.variables
+                  .getVariableById(variable.id)
+                  ?.setValueForMode(
+                    darkModeId,
+                    hexToFigmaColor(variable.darkValue)
+                  );
+              }
             }
-            createdVariable.setValueForMode(compactModeId, parseFloat(token.compactValue));
-          }
 
-          if (spaciousModeId && token.spaciousValue) {
-            if (!spaciousModeId) {
-              spaciousModeId = variableCollection.addMode("Spacious");
+            if (existingVariable.resolvedType === "FLOAT") {
+              if (standardModeId && variable.value) {
+                figma.variables
+                  .getVariableById(variable.id)
+                  ?.setValueForMode(standardModeId, parseFloat(variable.value));
+              }
+              if (compactModeId && variable.compactValue) {
+                figma.variables
+                  .getVariableById(variable.id)
+                  ?.setValueForMode(
+                    compactModeId,
+                    parseFloat(variable.compactValue)
+                  );
+              }
+              if (spaciousModeId && variable.spaciousValue) {
+                figma.variables
+                  .getVariableById(variable.id)
+                  ?.setValueForMode(
+                    spaciousModeId,
+                    parseFloat(variable.spaciousValue)
+                  );
+              }
+
+              if (!standardModeId && !compactModeId && !spaciousModeId) {
+                const currentVariable = figma.variables.getVariableById(
+                  variable.id
+                );
+                currentVariable?.setValueForMode(
+                  variableCollection.defaultModeId,
+                  parseFloat(variable.value)
+                );
+              }
             }
-            createdVariable.setValueForMode(spaciousModeId, parseFloat(token.spaciousValue));
           }
         }
+      } else {
+        throw new Error("Variable collection not found");
       }
 
-      for (let index = 0; index < variablesToUpdate.length; index++) {
-        const variable = variablesToUpdate[index];
-        const existingVariable = figma.variables.getVariableById(variable.id);
-
-        if (existingVariable) {
-          if (existingVariable.resolvedType === "COLOR") {
-            if (lightModeId && variable.value) {
-              figma.variables.getVariableById(variable.id)?.setValueForMode(lightModeId, hexToFigmaColor(variable.value));
-            }
-            if (darkModeId && variable.darkValue) {
-              figma.variables.getVariableById(variable.id)?.setValueForMode(darkModeId, hexToFigmaColor(variable.darkValue));
-            }
-          }
-
-          if (existingVariable.resolvedType === "FLOAT") {
-            if (standardModeId && variable.value) {
-              figma.variables.getVariableById(variable.id)?.setValueForMode(standardModeId, parseFloat(variable.value));
-            }
-            if (compactModeId && variable.compactValue) {
-              figma.variables.getVariableById(variable.id)?.setValueForMode(compactModeId, parseFloat(variable.compactValue));
-            }
-            if (spaciousModeId && variable.spaciousValue) {
-              figma.variables.getVariableById(variable.id)?.setValueForMode(spaciousModeId, parseFloat(variable.spaciousValue));
-            }
-
-            if (!standardModeId && !compactModeId && !spaciousModeId) {
-              const currentVariable = figma.variables.getVariableById(variable.id);
-              currentVariable?.setValueForMode(variableCollection.defaultModeId, parseFloat(variable.value));
-            }
-          }
-        }
-      }
-    } else {
-      throw new Error("Variable collection not found");
+      emit("IMPORT_FINISHED");
     }
-
-    emit("IMPORT_FINISHED");
-  });
+  );
 
   on("EXPORT_VARIABLES", () => {
     const collections = getLocalVariableCollections().map((item) => ({
@@ -164,7 +229,9 @@ export default () => {
     const variables = getLocalVariables().map((item) => ({
       name: item.name,
       id: item.id,
-      variableCollection: collections.find((collection) => collection.id === item.variableCollectionId),
+      variableCollection: collections.find(
+        (collection) => collection.id === item.variableCollectionId
+      ),
       description: item.description,
       valuesByMode: item.valuesByMode,
       resolvedType: item.resolvedType,
@@ -181,20 +248,18 @@ export default () => {
     getLocalData().then((data) => emit("SET_LOCAL_DATA", data));
   });
 
-  on("selectionchange", () => {
+  figma.on("selectionchange", () => {
     const selectedNodes = figma.currentPage.selection;
     if (selectedNodes.length > 0) {
       const nodeId = selectedNodes[0].id.replace(":", "-");
-      figma.ui.postMessage({ type: "NODE_SELECTED", nodeId });
-      console.log("Selected node ID:", nodeId);
+      emit("NODE_SELECTED", nodeId);
     } else {
-      figma.ui.postMessage({ type: "NODE_SELECTED", nodeId: null });
-      console.log("No node selected");
+      emit("NODE_SELECTED", null);
     }
   });
 
   on("COPIED_TO_CLIPBOARD", (message) => {
-    figma.notify("Node copied to clipboard!");
+    figma.notify(`${message} copied to clipboard!`);
   });
 
   showUI({ height: 400, width: 320 });

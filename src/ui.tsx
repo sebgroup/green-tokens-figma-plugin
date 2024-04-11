@@ -1,12 +1,23 @@
-import { Container, Divider, render, Stack, VerticalSpace, Text } from "@create-figma-plugin/ui";
+import {
+  Container,
+  Divider,
+  render,
+  Stack,
+  VerticalSpace,
+  Text,
+} from "@create-figma-plugin/ui";
 import { on } from "@create-figma-plugin/utilities";
 import { createContext, h } from "preact";
 import { useEffect, useReducer, useState } from "preact/hooks";
-import { Import, ImportExportSegmentedControl, PluginBannerWrapper } from "./components";
+import {
+  Import,
+  ImportExportSegmentedControl,
+  PluginBannerWrapper,
+} from "./components";
 import { IPluginState, ReportErrorHandler, ReducerAction } from "./types";
 import { pluginReducer } from "./reducers/plugin";
 import { Export } from "./components/Export";
-import { NodeFinder } from "./components/NodeFinder";
+import { NodeFinder } from "./components/node-finder/NodeFinder";
 
 const initialState: IPluginState = {
   errorMsg: null,
@@ -20,7 +31,9 @@ const initialState: IPluginState = {
 };
 
 export const PluginContext = createContext<IPluginState>(initialState);
-export const PluginDispatchContext = createContext<(action: ReducerAction) => void>(() => {});
+export const PluginDispatchContext = createContext<
+  (action: ReducerAction) => void
+>(() => {});
 
 const ImportExportContainer = {
   import: <Import />,
@@ -28,8 +41,10 @@ const ImportExportContainer = {
 };
 
 function Plugin() {
-  const [state, dispatch] = useReducer<IPluginState, ReducerAction>(pluginReducer, initialState);
-
+  const [state, dispatch] = useReducer<IPluginState, ReducerAction>(
+    pluginReducer,
+    initialState
+  );
   const [selectedNodeId, setSelectedNodeId] = useState(null);
 
   useEffect(() => {
@@ -62,6 +77,7 @@ function Plugin() {
     });
 
     on("NODE_SELECTED", (selectedNodeId) => {
+      console.log("Selected Node:", selectedNodeId);
       setSelectedNodeId(selectedNodeId);
     });
 
@@ -82,7 +98,7 @@ function Plugin() {
           <Stack space="small">
             <VerticalSpace space="small" />
             <Divider />
-            <NodeFinder />
+            <NodeFinder node={selectedNodeId || ""} />
           </Stack>
         </Container>
       </PluginDispatchContext.Provider>
