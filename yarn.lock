@@ -1226,7 +1226,7 @@ rev-hash@^4.1.0:
   resolved "https://registry.yarnpkg.com/rev-hash/-/rev-hash-4.1.0.tgz#fc69c6db9e1276dc0bb693a492f27e9c23931c5b"
   integrity sha512-e0EGnaveLY2IYpYwHNdh43WZ2M84KgW3Z/T4F6+Z/BlZI/T1ZbxTWj36xgYgUPOieGXYo2q225jTeUXn+LWYjw==
 
-rgb-hex@^4.0.1:
+rgb-hex@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/rgb-hex/-/rgb-hex-4.1.0.tgz#b343f394c8f9df629a7504c34c00b5bc63bd006f"
   integrity sha512-UZLM57BW09Yi9J1R3OP8B1yCbbDK3NT8BDtihGZkGkGEs2b6EaV85rsfJ6yK4F+8UbxFFmfA+9xHT5ZWhN1gDQ==
@@ -1402,10 +1402,10 @@ typed-css-modules@^0.8.1:
     postcss-modules-values "^4.0.0"
     yargs "^17.7.2"
 
-typescript@>=4:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.2.tgz#5ebb5e5a5b75f085f22bc3f8460fba308310fa78"
-  integrity sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==
+typescript@>=5:
+  version "5.4.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.4.5.tgz#42ccef2c571fdbd0f6718b1d1f5e6e5ef006f611"
+  integrity sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==
 
 unicorn-magic@^0.1.0:
   version "0.1.0"
