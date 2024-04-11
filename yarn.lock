@@ -38,17 +38,17 @@
   resolved "https://registry.yarnpkg.com/@create-figma-plugin/tsconfig/-/tsconfig-3.1.0.tgz#b422b24e864c6989d1d20ee0015d1c11cf076f66"
   integrity sha512-DrKUi7hlTbPA80cZ4o4WtMGCpe23V+HL6vrjvjaXG8i7XplFGTV0XYB77T2K6R7Mi7BuF2fZRYTVDYnqgSk+6A==
 
-"@create-figma-plugin/ui@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@create-figma-plugin/ui/-/ui-3.1.0.tgz#c61edb4d3cb9995321975378829ed070669d33d0"
-  integrity sha512-V8q5HtypBTxE3i8migBw6XNrM7fCtsgBEQ0/nwZw5q0in7sDNNtwu9H7ghyN8WX1NMqIBeNBGMPvwBUrzWj9KQ==
+"@create-figma-plugin/ui@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@create-figma-plugin/ui/-/ui-3.2.0.tgz#730a9fcb1a4eb446848fd65ded0054f0b8c8bb8a"
+  integrity sha512-E0is67aaoVECDgSMAlkp584wI24yglENH6M4OIJwDMbHBXidIbtAk9RIbUDr0gC+2NWNRLpIyFQH6LnZcqO+0A==
   dependencies:
-    "@create-figma-plugin/utilities" "^3.1.0"
+    "@create-figma-plugin/utilities" "^3.2.0"
 
-"@create-figma-plugin/utilities@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@create-figma-plugin/utilities/-/utilities-3.1.0.tgz#546a4fb93fbe9285e8b8c4b9b9da716d72feecec"
-  integrity sha512-Si4eETOK7LJOd2P4WQZ8Yjd/q3ujE4z0vjvJg8axg1olwBl/LwCZiCyDetua0dM0Hiu63/ifPUdAIsZbkfeoSg==
+"@create-figma-plugin/utilities@^3.1.0", "@create-figma-plugin/utilities@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@create-figma-plugin/utilities/-/utilities-3.2.0.tgz#63d2e95cd731d5459d30d93090ddcef545bcfb36"
+  integrity sha512-+5JddDqI6XjVJs0EqgLd+6B9ukjhHFEBesqPI/e0okqS+Ay7Gt3xsD0vMrZjVYfJcmRAprgJhdGBGJZjOZiQIA==
   dependencies:
     hex-rgb "^5.0.0"
     natural-compare-lite "1.4.0"
@@ -1226,7 +1226,7 @@ rev-hash@^4.1.0:
   resolved "https://registry.yarnpkg.com/rev-hash/-/rev-hash-4.1.0.tgz#fc69c6db9e1276dc0bb693a492f27e9c23931c5b"
   integrity sha512-e0EGnaveLY2IYpYwHNdh43WZ2M84KgW3Z/T4F6+Z/BlZI/T1ZbxTWj36xgYgUPOieGXYo2q225jTeUXn+LWYjw==
 
-rgb-hex@^4.0.1:
+rgb-hex@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/rgb-hex/-/rgb-hex-4.1.0.tgz#b343f394c8f9df629a7504c34c00b5bc63bd006f"
   integrity sha512-UZLM57BW09Yi9J1R3OP8B1yCbbDK3NT8BDtihGZkGkGEs2b6EaV85rsfJ6yK4F+8UbxFFmfA+9xHT5ZWhN1gDQ==
