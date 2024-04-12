@@ -5,7 +5,7 @@ import "!./NodeFinder.css";
 
 export function NodeFinder({ node }: { node: string }) {
   function getNode() {
-    const textToCopy = node ? `<Figma node="${node}" />` : ``;
+    const textToCopy = node ? `<Figma node="${node}" caption=" " />` : ``;
     const textarea = document.createElement("textarea");
     textarea.value = textToCopy;
     document.body.appendChild(textarea);
