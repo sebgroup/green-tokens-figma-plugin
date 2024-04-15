@@ -1,23 +1,13 @@
-import {
-  Container,
-  Divider,
-  render,
-  Stack,
-  VerticalSpace,
-  Text,
-} from "@create-figma-plugin/ui";
+import { Container, render, Tabs, TabsOption } from "@create-figma-plugin/ui";
 import { on } from "@create-figma-plugin/utilities";
 import { createContext, h } from "preact";
 import { useEffect, useReducer, useState } from "preact/hooks";
-import {
-  Import,
-  ImportExportSegmentedControl,
-  PluginBannerWrapper,
-} from "./components";
+import { Import } from "./components";
 import { IPluginState, ReportErrorHandler, ReducerAction } from "./types";
 import { pluginReducer } from "./reducers/plugin";
 import { Export } from "./components/Export";
 import { NodeFinder } from "./components/node-finder/NodeFinder";
+import { IMGSync } from "./components/sync-images/sync-images";
 
 const initialState: IPluginState = {
   errorMsg: null,
@@ -34,11 +24,6 @@ export const PluginContext = createContext<IPluginState>(initialState);
 export const PluginDispatchContext = createContext<
   (action: ReducerAction) => void
 >(() => {});
-
-const ImportExportContainer = {
-  import: <Import />,
-  export: <Export />,
-};
 
 function Plugin() {
   const [state, dispatch] = useReducer<IPluginState, ReducerAction>(
@@ -80,26 +65,37 @@ function Plugin() {
       console.log("Selected Node:", selectedNodeId);
       setSelectedNodeId(selectedNodeId);
     });
-
-    //emit<GetVariableCollectionsHandler>('GET_COLLECTIONS')
   }, []);
+
+  const [tabs, setTabs] = useState<string>("Node");
+  const options: Array<TabsOption> = [
+    {
+      children: <NodeFinder node={selectedNodeId || ""} />,
+      value: "Node",
+    },
+    {
+      children: <Import />,
+      value: "Import",
+    },
+    {
+      children: <Export />,
+      value: "Export",
+    },
+    {
+      children: <IMGSync />,
+      value: "Sync",
+    },
+  ];
+
+  function changeTabs(newValue: string) {
+    setTabs(newValue);
+  }
 
   return (
     <PluginContext.Provider value={state}>
       <PluginDispatchContext.Provider value={dispatch}>
         <Container space="medium">
-          <VerticalSpace space="small" />
-          <Stack space="small">
-            <PluginBannerWrapper />
-            <ImportExportSegmentedControl />
-            <Divider />
-            {ImportExportContainer[state.importExport]}
-          </Stack>
-          <Stack space="small">
-            <VerticalSpace space="small" />
-            <Divider />
-            <NodeFinder node={selectedNodeId || ""} />
-          </Stack>
+          <Tabs onValueChange={changeTabs} options={options} value={tabs} />
         </Container>
       </PluginDispatchContext.Provider>
     </PluginContext.Provider>
