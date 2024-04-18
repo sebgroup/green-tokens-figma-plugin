@@ -262,34 +262,6 @@ export default () => {
     figma.notify(`${message} copied to clipboard!`);
   });
 
-  on("TRIGGER_BUILD", async (token) => {
-    const response = await fetch(
-      "https://api.github.com/repos/sebgroup/seb.io/actions/workflows/staging/dispatches",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-        },
-        body: JSON.stringify({
-          ref: "main",
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      console.error("Failed to trigger build:", response.statusText);
-    }
-  });
-
-  on("SYNC_IMAGES", (message) => {
-    figma.notify(`Image Sync started!`);
-  });
-
-  on("AUTHENTICATE", (message) => {
-    figma.notify(`${message}`);
-  });
-
   showUI({ height: 400, width: 320 });
 
   getLocalData().then((data) => emit("SET_LOCAL_DATA", data));
