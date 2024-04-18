@@ -33,10 +33,10 @@
     kleur "^4.1.5"
     path-exists "^5.0.0"
 
-"@create-figma-plugin/tsconfig@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@create-figma-plugin/tsconfig/-/tsconfig-3.1.0.tgz#b422b24e864c6989d1d20ee0015d1c11cf076f66"
-  integrity sha512-DrKUi7hlTbPA80cZ4o4WtMGCpe23V+HL6vrjvjaXG8i7XplFGTV0XYB77T2K6R7Mi7BuF2fZRYTVDYnqgSk+6A==
+"@create-figma-plugin/tsconfig@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@create-figma-plugin/tsconfig/-/tsconfig-3.2.0.tgz#9caaa570056daa4c0d92a7b150ca03c80b6e5e67"
+  integrity sha512-gdhq2uzDbzu/PMoWwKtA3EmVucKkqkCiQg1esJeyF3u/EtzYXoucAHazB9kXmzvf8UlZW1FS9QI3MQuuIzy8jg==
 
 "@create-figma-plugin/ui@^3.2.0":
   version "3.2.0"
