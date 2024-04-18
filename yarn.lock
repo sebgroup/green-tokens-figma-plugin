@@ -169,10 +169,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.20.2.tgz#9c907b21e30a52db959ba4f80bb01a0cc403d5cc"
   integrity sha512-N49X4lJX27+l9jbLKSqZ6bKNjzQvHaT8IIFUy+YIqmXQdjYCToGWwOItDrfby14c78aDd5NHQl29xingXfCdLQ==
 
-"@figma/plugin-typings@^1.88.0":
-  version "1.90.0"
-  resolved "https://registry.yarnpkg.com/@figma/plugin-typings/-/plugin-typings-1.90.0.tgz#b69d9cf6605ab3050d4076ea0e28671be0531889"
-  integrity sha512-RvZrSkuV0SABRaYuRFO/S30u9+RGKJm6+CPjSG7MaMo60p8S1sX5YOWT+zDWZC6mqNEaxLkrbXdiyqWXsfdHQg==
+"@figma/plugin-typings@^1.91.0":
+  version "1.91.0"
+  resolved "https://registry.yarnpkg.com/@figma/plugin-typings/-/plugin-typings-1.91.0.tgz#8a88ce43bc72500de2c1f4d8cb20558f05a7de23"
+  integrity sha512-Q1CUtWQyY16eSH4pEY18CLgfGqKNotp2Yg4pCjY9hz6+Fe/Obqz5wSAyUAYDDEq4SYU0UEZJ/t/3K+6KA3j35w==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
