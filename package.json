@@ -13,17 +13,17 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@create-figma-plugin/build": "^3.1.0",
-    "@create-figma-plugin/tsconfig": "^3.1.0",
-    "@figma/plugin-typings": "^1.88.0",
-    "typescript": ">=4"
+    "@create-figma-plugin/build": "^3.2.0",
+    "@create-figma-plugin/tsconfig": "^3.2.0",
+    "@figma/plugin-typings": "^1.91.0",
+    "typescript": ">=5.4.5"
   },
   "dependencies": {
-    "@create-figma-plugin/ui": "^3.1.0",
-    "@create-figma-plugin/utilities": "^3.1.0",
-    "@types/chroma-js": "^2.4.1",
+    "@create-figma-plugin/ui": "^3.2.0",
+    "@create-figma-plugin/utilities": "^3.2.0",
+    "@types/chroma-js": "^2.4.4",
     "chroma-js": "^2.4.2",
-    "preact": "^10.17.1"
+    "preact": "^10.20.2"
   },
   "figma-plugin": {
     "editorType": [
