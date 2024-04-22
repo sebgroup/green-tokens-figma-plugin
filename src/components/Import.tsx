@@ -11,20 +11,28 @@ import {
   IconWarning32,
   Button,
   Stack,
-  Checkbox,
   Columns,
   Banner,
   Dropdown,
-  DropdownOption,
 } from "@create-figma-plugin/ui";
-import { useContext, useState } from "preact/compat";
+import { useContext } from "preact/compat";
 import { PluginContext, PluginDispatchContext } from "../ui";
-import { ImportStateComponentEnum, IVariable, ReducerAction, Tokens } from "../types";
+import {
+  ImportStateComponentEnum,
+  IVariable,
+  ReducerAction,
+  Tokens,
+} from "../types";
 import JSX = createElement.JSX;
 import { emit, EventHandler } from "@create-figma-plugin/utilities";
 import { worker } from "../workers/worker";
 
-function handleSelectedFiles(files: File[], localVariables: Pick<IVariable, "id" | "name">[], dispatch: (action: ReducerAction) => void, importToCollection: string | null) {
+function handleSelectedFiles(
+  files: File[],
+  localVariables: Pick<IVariable, "id" | "name">[],
+  dispatch: (action: ReducerAction) => void,
+  importToCollection: string | null
+) {
   const reader = new FileReader();
   reader.readAsText(files[0]);
 
@@ -47,9 +55,13 @@ function ConfirmImport(): JSX.Element {
   const state = useContext(PluginContext);
 
   return (
-    <Stack space="small">
-      <Text>Variables that will be created ({state.variablesToCreate?.length})</Text>
-      <Text>Variables that will be updated ({state.variablesToUpdate?.length})</Text>
+    <Stack space="medium">
+      <Text>
+        Variables that will be created ({state.variablesToCreate?.length})
+      </Text>
+      <Text>
+        Variables that will be updated ({state.variablesToUpdate?.length})
+      </Text>
       <VerticalSpace space="small" />
       <Stack space="small">
         <div>
@@ -58,7 +70,11 @@ function ConfirmImport(): JSX.Element {
             fullWidth
             onClick={() => {
               dispatch({ type: "SET_IMPORT_STATE", importState: "loading" });
-              emit("EXECUTE_IMPORT", { variablesToCreate: state.variablesToCreate, variablesToUpdate: state.variablesToUpdate, collectionId: state.importToCollection });
+              emit("EXECUTE_IMPORT", {
+                variablesToCreate: state.variablesToCreate,
+                variablesToUpdate: state.variablesToUpdate,
+                collectionId: state.importToCollection,
+              });
             }}
           >
             Approve import
@@ -123,15 +139,24 @@ const ImportEnum: ImportStateComponentEnum = {
 function ReadToImport(): JSX.Element {
   const state = useContext(PluginContext);
   const dispatch = useContext(PluginDispatchContext);
-  const options = state.localCollections.map((item) => ({ text: item.name, value: item.id }));
+  const options = state.localCollections.map((item) => ({
+    text: item.name,
+    value: item.id,
+  }));
   const onSelectedFiles = async (files: File[]) => {
     dispatch({ type: "SET_IMPORT_STATE", importState: "loading" });
 
-    handleSelectedFiles(files, state.localVariables, dispatch, state.importToCollection);
+    handleSelectedFiles(
+      files,
+      state.localVariables,
+      dispatch,
+      state.importToCollection
+    );
   };
 
   return (
     <Stack space="extraSmall">
+      <VerticalSpace space="medium" />
       <Text>Import into collection:</Text>
       <Dropdown
         label={"Select collection to import to"}
@@ -140,11 +165,18 @@ function ReadToImport(): JSX.Element {
         value={state.importToCollection}
         variant="border"
         onChange={(event) => {
-          dispatch({ type: "SET_IMPORT_TO_COLLECTION", importToCollection: event.currentTarget?.value });
+          dispatch({
+            type: "SET_IMPORT_TO_COLLECTION",
+            importToCollection: event.currentTarget?.value,
+          });
         }}
       />
       {state.importToCollection && (
-        <FileUploadDropzone disabled={state.importToCollection === null} acceptedFileTypes={["application/json"]} onSelectedFiles={onSelectedFiles}>
+        <FileUploadDropzone
+          disabled={state.importToCollection === null}
+          acceptedFileTypes={["application/json"]}
+          onSelectedFiles={onSelectedFiles}
+        >
           <Text align="center">
             <Bold>Drop token file here to import</Bold>
           </Text>
@@ -153,7 +185,11 @@ function ReadToImport(): JSX.Element {
             <Muted>or</Muted>
           </Text>
           <VerticalSpace space="small" />
-          <FileUploadButton disabled={state.importToCollection === null} acceptedFileTypes={["application/json"]} onSelectedFiles={onSelectedFiles}>
+          <FileUploadButton
+            disabled={state.importToCollection === null}
+            acceptedFileTypes={["application/json"]}
+            onSelectedFiles={onSelectedFiles}
+          >
             Select token file to import
           </FileUploadButton>
         </FileUploadDropzone>
@@ -166,7 +202,8 @@ function CreateCollections() {
   return (
     <Stack space={"medium"}>
       <Banner variant={"warning"} icon={<IconWarning32 />}>
-        In order for this plugin to work you need to have two collections called REF and SYS
+        In order for this plugin to work you need to have two collections called
+        REF and SYS
       </Banner>
       <Button
         fullWidth

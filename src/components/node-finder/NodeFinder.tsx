@@ -1,7 +1,16 @@
-import { h } from "preact";
-import { Button, Bold, Text } from "@create-figma-plugin/ui";
+import { JSX, h } from "preact";
 import { emit } from "@create-figma-plugin/utilities";
-import "!./NodeFinder.css";
+import {
+  Text,
+  Button,
+  Stack,
+  Textbox,
+  VerticalSpace,
+  Layer,
+  IconLayerComponent16,
+  IconLayerFrame16,
+} from "@create-figma-plugin/ui";
+import { useState } from "preact/hooks";
 
 export function NodeFinder({ node }: { node: string }) {
   function getNode() {
@@ -15,25 +24,35 @@ export function NodeFinder({ node }: { node: string }) {
     emit("COPIED_TO_CLIPBOARD", node);
   }
 
+  const [value, setValue] = useState<boolean>(true);
+  function handleChange(event: JSX.TargetedEvent<HTMLInputElement>) {
+    const newValue = event.currentTarget.checked;
+    console.log(newValue);
+    setValue(newValue);
+  }
+
   return (
-    <div class={"node-finder"}>
-      <Text>
-        <Bold>Node ID:</Bold>
-      </Text>
-      <div className="node-input">
-        <input
-          spellcheck={false}
-          autocomplete={"off"}
-          value={node ? `<Figma node="${node}" caption=" " />` : ""}
-          placeholder={node ? "" : `<Figma node="[NODE_ID]" />`}
-        />
-        <Button onClick={getNode}>
-          <svg viewBox="0 0 24 24">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-          </svg>
-        </Button>
-      </div>
-    </div>
+    <Stack space="small">
+      <VerticalSpace space="medium" />
+      <Text>Node Finder:</Text>
+      {/* <Textbox
+        spellcheck={false}
+        placeholder={node ? "" : `<Figma node="[NODE_ID]" />`}
+        value={node ? `<Figma node="${node}" caption=" " />` : ""}
+        variant="border"
+      /> */}
+      <Layer
+        onChange={handleChange}
+        value={value}
+        // description={`<Figma node="${node}" caption=" " />`}
+        icon={<IconLayerFrame16 />}
+      >
+        {`<Figma node="${node}" caption=" " />`}
+        {/* Node: */}
+      </Layer>
+      <Button onClick={getNode} fullWidth>
+        Copy Node
+      </Button>
+    </Stack>
   );
 }

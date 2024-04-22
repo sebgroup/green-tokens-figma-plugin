@@ -8,15 +8,13 @@ export function ImportExportSegmentedControl() {
   const dispatch = useContext(PluginDispatchContext);
   return (
     <Stack space="extraSmall">
-      <Text>
-        <Bold>Import / Export</Bold>
-      </Text>
       <SegmentedControl
+        style={{ outline: "none" }}
         options={[
-          { value: "import", children: "Import tokens" },
+          { value: "import", children: "Import" },
           {
             value: "export",
-            children: "Export variables",
+            children: "Export",
           },
         ]}
         value={state.importExport}

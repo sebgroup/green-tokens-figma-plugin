@@ -1,15 +1,20 @@
-import {Button, MiddleAlign} from "@create-figma-plugin/ui";
-import {emit} from "@create-figma-plugin/utilities";
-import {h} from "preact";
+import { Button, Stack, VerticalSpace, Text } from "@create-figma-plugin/ui";
+import { emit } from "@create-figma-plugin/utilities";
+import { h } from "preact";
 
 export function Export() {
-    return (
-        <div style={{height: 250}}>
-            <MiddleAlign>
-                <Button fullWidth onClick={() => {
-                    emit('EXPORT_VARIABLES')
-                }}>Export JSON file</Button>
-            </MiddleAlign>
-        </div>
-    )
+  return (
+    <Stack space="medium">
+      <VerticalSpace space="medium" />
+      <Text>Export all variables as JSON</Text>
+      <Button
+        fullWidth
+        onClick={() => {
+          emit("EXPORT_VARIABLES");
+        }}
+      >
+        Export JSON file
+      </Button>
+    </Stack>
+  );
 }
